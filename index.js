@@ -74,11 +74,15 @@ exports.checkStressLevels = async () => {
     const stressRecoveryDifference = stressHigh - recoveryHigh;
     const daySummary = data.data[0].day_summary;
 
+    const now = DateTime.now().setZone('America/Chicago');
+    const formattedTime = now.toFormat('h:mm a');
+
+    const differenceInMinutes = Math.round(stressRecoveryDifference / 60);
+
     if (stressRecoveryDifference > STRESS_RECOVERY_THRESHOLD || daySummary === 'stressful') {
       await sendPushoverNotification(
-        `High stress detected: ${stressHigh / 60} minutes\n` +
-        `Time: ${new Date().toLocaleTimeString()}\n` +
-        'Take a restorative break.'
+        `It's ${formattedTime} and your stress-recovery difference is ${differenceInMinutes} minutes.\n\n` +
+        'Consider taking a restorative break.'
       )
     }
   } catch (error) {
