@@ -5,6 +5,14 @@ const OURA_TOKEN = process.env.OURA_TOKEN;
 const PUSHOVER_TOKEN = process.env.PUSHOVER_TOKEN;
 const PUSHOVER_USER = process.env.PUSHOVER_USER;
 const STRESS_RECOVERY_THRESHOLD = 1800; // 30 minutes
+const STRESS_ACTIONS = [
+  'Do Qigong tapping or shaking',
+  'Take a screen break and a couple of deep breaths',
+  'Go for a short walk',
+  'Practice resonant breathing',
+  'Listen to Falling by Oscar Mbo',
+  'Stretch for 5 minutes'
+];
 
 function getLocalDate() {
   const centralTime = DateTime.now().setZone('America/Chicago');
@@ -71,6 +79,8 @@ exports.checkStressLevels = async () => {
 
     const stressHigh = data?.data[0]?.stress_high;
     const recoveryHigh = data?.data[0]?.recovery_high;
+    const stressMinutes = Math.round(stressHigh / 60);
+    const recoveryMinutes = Math.round(recoveryHigh / 60);
     const stressRecoveryDifference = stressHigh - recoveryHigh;
     const daySummary = data.data[0].day_summary;
 
@@ -78,11 +88,13 @@ exports.checkStressLevels = async () => {
     const formattedTime = now.toFormat('h:mm a');
 
     const differenceInMinutes = Math.round(stressRecoveryDifference / 60);
+    const randomAction = STRESS_ACTIONS[Math.floor(Math.random() * STRESS_ACTIONS.length)];
 
     if (stressRecoveryDifference > STRESS_RECOVERY_THRESHOLD || daySummary === 'stressful') {
       await sendPushoverNotification(
-        `It's ${formattedTime} and your stress-recovery difference is ${differenceInMinutes} minutes.\n\n` +
-        'Consider taking a restorative break.'
+        `${formattedTime} | High stress imbalance detected: ${differenceInMinutes} mins.\n\n` +
+        `Stress: ${stressMinutes}min vs Recovery: ${recoveryMinutes}min\n` +
+        `Consider taking a restorative break: ${randomAction}.`
       )
     }
   } catch (error) {
